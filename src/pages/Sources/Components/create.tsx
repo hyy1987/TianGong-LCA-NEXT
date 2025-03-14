@@ -81,9 +81,9 @@ const SourceCreate: FC<Props> = ({ actionRef, lang }) => {
     const result = await createSource(v4(), {
       ...fromData,
       sourceInformation: {
-        ...fromData.sourceInformation,
+        ...fromData?.sourceInformation,
         dataSetInformation: {
-          ...fromData.sourceInformation.dataSetInformation,
+          ...fromData?.sourceInformation?.dataSetInformation,
           referenceToDigitalFile: filePaths,
         },
       },
@@ -218,7 +218,7 @@ const SourceCreate: FC<Props> = ({ actionRef, lang }) => {
           onFinish={onSubmit}
         >
           <SourceForm
-            defaultSourceName='ILCD'
+            formType='create'
             lang={lang}
             activeTabKey={activeTabKey}
             formRef={formRefCreate}
