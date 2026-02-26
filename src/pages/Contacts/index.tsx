@@ -8,12 +8,11 @@ import {
   getContactTableAll,
   getContactTablePgroongaSearch,
 } from '@/services/contacts/api';
-import { ContactImportData, ContactTable } from '@/services/contacts/data';
+import { ContactTable } from '@/services/contacts/data';
 import { contributeSource } from '@/services/general/api';
 import { ListPagination } from '@/services/general/data';
 import { getDataSource, getLang, getLangText } from '@/services/general/util';
 import { getTeamById } from '@/services/teams/api';
-import { TeamTable } from '@/services/teams/data';
 import { ActionType, PageContainer, ProColumns, ProTable } from '@ant-design/pro-components';
 import { TableDropdown } from '@ant-design/pro-table';
 import { Card, Checkbox, Col, Input, Row, Space, Tooltip, message, theme } from 'antd';
@@ -31,9 +30,9 @@ const { Search } = Input;
 
 const TableList: FC = () => {
   const [stateCode, setStateCode] = useState<string | number>('all');
-  const [keyWord, setKeyWord] = useState<string>('');
-  const [team, setTeam] = useState<TeamTable | null>(null);
-  const [importData, setImportData] = useState<ContactImportData | null>(null);
+  const [keyWord, setKeyWord] = useState<any>('');
+  const [team, setTeam] = useState<any>(null);
+  const [importData, setImportData] = useState<any>(null);
   const [openAI, setOpenAI] = useState<boolean>(false);
   const { token } = theme.useToken();
   const location = useLocation();
@@ -249,7 +248,7 @@ const TableList: FC = () => {
     actionRef.current?.reload();
   };
 
-  const handleImportData = (jsonData: ContactImportData) => {
+  const handleImportData = (jsonData: any) => {
     setImportData(jsonData);
   };
 

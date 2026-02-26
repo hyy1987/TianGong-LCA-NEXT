@@ -1,6 +1,6 @@
 import RefsOfNewVersionDrawer, { RefVersionItem } from '@/components/RefsOfNewVersionDrawer';
-import { RefCheckContext, RefCheckType, useRefCheckContext } from '@/contexts/refCheckContext';
-import type { ProblemNode, refDataType } from '@/pages/Utils/review';
+import { RefCheckContext, useRefCheckContext } from '@/contexts/refCheckContext';
+import type { refDataType } from '@/pages/Utils/review';
 import { ReffPath, checkData, getErrRefTab } from '@/pages/Utils/review';
 import {
   getRefsOfCurrentVersion,
@@ -8,13 +8,8 @@ import {
   updateRefsData,
 } from '@/pages/Utils/updateReference';
 import { getContactDetail, updateContact } from '@/services/contacts/api';
-import {
-  ContactDataSetObjectKeys,
-  ContactDetailResponse,
-  FormContact,
-} from '@/services/contacts/data';
+import { ContactDataSetObjectKeys, FormContact } from '@/services/contacts/data';
 import { genContactFromData, genContactJsonOrdered } from '@/services/contacts/util';
-import type { SupabaseMutationResult } from '@/services/supabase/data';
 import styles from '@/style/custom.less';
 import { CloseOutlined, FormOutlined } from '@ant-design/icons';
 import { ActionType, ProForm, ProFormInstance } from '@ant-design/pro-components';
@@ -32,10 +27,8 @@ type Props = {
   actionRef?: React.MutableRefObject<ActionType | undefined>;
   lang: string;
   setViewDrawerVisible: React.Dispatch<React.SetStateAction<boolean>>;
-  updateErrRef?: (data: RefCheckType | null) => void;
+  updateErrRef?: (data: any) => void;
 };
-
-type UpdateContactResult = SupabaseMutationResult<{ rule_verification?: boolean }>;
 
 const ContactEdit: FC<Props> = ({
   id,
@@ -59,11 +52,9 @@ const ContactEdit: FC<Props> = ({
   const [activeTabKey, setActiveTabKey] = useState<ContactDataSetObjectKeys>('contactInformation');
   const [showRules, setShowRules] = useState<boolean>(false);
   const intl = useIntl();
-  const [refCheckData, setRefCheckData] = useState<RefCheckType[]>([]);
+  const [refCheckData, setRefCheckData] = useState<any[]>([]);
   const parentRefCheckContext = useRefCheckContext();
-  const [refCheckContextValue, setRefCheckContextValue] = useState<{
-    refCheckData: RefCheckType[];
-  }>({
+  const [refCheckContextValue, setRefCheckContextValue] = useState<any>({
     refCheckData: [],
   });
   useEffect(() => {
@@ -99,7 +90,7 @@ const ContactEdit: FC<Props> = ({
   const onReset = () => {
     setSpinning(true);
     formRefEdit.current?.resetFields();
-    getContactDetail(id, version).then(async (result: ContactDetailResponse) => {
+    getContactDetail(id, version).then(async (result) => {
       const contactFromData = genContactFromData(result.data?.json?.contactDataSet ?? {});
       setInitData(contactFromData);
       formRefEdit.current?.setFieldsValue(contactFromData);
@@ -153,11 +144,11 @@ const ContactEdit: FC<Props> = ({
     onReset();
   }, [drawerVisible]);
 
-  const handleSubmit = async (autoClose: boolean): Promise<UpdateContactResult | undefined> => {
+  const handleSubmit = async (autoClose: boolean) => {
     if (autoClose) setSpinning(true);
     await updateReferenceDescription();
     const formFieldsValue = formRefEdit.current?.getFieldsValue();
-    const updateResult: UpdateContactResult = await updateContact(id, version, formFieldsValue);
+    const updateResult = await updateContact(id, version, formFieldsValue);
     if (updateResult?.data) {
       if (updateResult?.data[0]?.rule_verification === true) {
         updateErrRef(null);
@@ -165,7 +156,7 @@ const ContactEdit: FC<Props> = ({
         updateErrRef({
           id: id,
           version: version,
-          ruleVerification: Boolean(updateResult?.data[0]?.rule_verification),
+          ruleVerification: updateResult?.data[0]?.rule_verification,
           nonExistent: false,
         });
       }
@@ -179,7 +170,6 @@ const ContactEdit: FC<Props> = ({
         setDrawerVisible(false);
         setViewDrawerVisible(false);
         actionRef?.current?.reload();
-        return undefined;
       }
     } else {
       if (updateResult?.error?.state_code === 100) {
@@ -204,13 +194,13 @@ const ContactEdit: FC<Props> = ({
     if (!autoClose) {
       return updateResult;
     }
-    return undefined;
+    return true;
   };
 
   const handleCheckData = async () => {
     setSpinning(true);
     const updateResult = await handleSubmit(false);
-    if (!updateResult || updateResult.error) {
+    if (updateResult.error) {
       setSpinning(false);
       return;
     }
@@ -223,7 +213,7 @@ const ContactEdit: FC<Props> = ({
         '@refObjectId': id,
         '@version': version,
       },
-      updateResult?.data?.[0]?.rule_verification ?? false,
+      updateResult?.data[0]?.rule_verification,
       false,
     );
     await checkData(
@@ -236,9 +226,9 @@ const ContactEdit: FC<Props> = ({
       nonExistentRef,
       pathRef,
     );
-    const problemNodes: ProblemNode[] = pathRef?.findProblemNodes() ?? [];
+    const problemNodes = pathRef?.findProblemNodes() ?? [];
     if (problemNodes && problemNodes.length > 0) {
-      const result = problemNodes.map((item) => {
+      let result = problemNodes.map((item: any) => {
         return {
           id: item['@refObjectId'],
           version: item['@version'],
@@ -250,7 +240,7 @@ const ContactEdit: FC<Props> = ({
     } else {
       setRefCheckData([]);
     }
-    const unRuleVerificationData = unRuleVerification.map((item: refDataType) => {
+    const unRuleVerificationData = unRuleVerification.map((item: any) => {
       return {
         id: item['@refObjectId'],
         version: item['@version'],
@@ -258,7 +248,7 @@ const ContactEdit: FC<Props> = ({
         nonExistent: false,
       };
     });
-    const nonExistentRefData = nonExistentRef.map((item: refDataType) => {
+    const nonExistentRefData = nonExistentRef.map((item: any) => {
       return {
         id: item['@refObjectId'],
         version: item['@version'],
@@ -267,15 +257,15 @@ const ContactEdit: FC<Props> = ({
       };
     });
     const errTabNames: string[] = [];
-    nonExistentRef.forEach((item: refDataType) => {
+    nonExistentRef.forEach((item: any) => {
       const tabName = getErrRefTab(item, initData);
       if (tabName && !errTabNames.includes(tabName)) errTabNames.push(tabName);
     });
-    unRuleVerification.forEach((item: refDataType) => {
+    unRuleVerification.forEach((item: any) => {
       const tabName = getErrRefTab(item, initData);
       if (tabName && !errTabNames.includes(tabName)) errTabNames.push(tabName);
     });
-    problemNodes.forEach((item) => {
+    problemNodes.forEach((item: any) => {
       const tabName = getErrRefTab(item, initData);
       if (tabName && !errTabNames.includes(tabName)) errTabNames.push(tabName);
     });
@@ -308,7 +298,7 @@ const ContactEdit: FC<Props> = ({
       if (errTabNames && errTabNames.length > 0) {
         message.error(
           errTabNames
-            .map((tab) =>
+            .map((tab: any) =>
               intl.formatMessage({
                 id: `pages.contact.${tab}`,
                 defaultMessage: tab,
@@ -415,10 +405,7 @@ const ContactEdit: FC<Props> = ({
                 },
               }}
               initialValues={initData}
-              onFinish={async () => {
-                await handleSubmit(true);
-                return true;
-              }}
+              onFinish={() => handleSubmit(true)}
             >
               <ContactForm
                 lang={lang}

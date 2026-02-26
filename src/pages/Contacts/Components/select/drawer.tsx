@@ -1,12 +1,12 @@
 import { getContactTableAll, getContactTablePgroongaSearch } from '@/services/contacts/api';
 import { ContactTable } from '@/services/contacts/data';
-import { DataTabKey, ListPagination } from '@/services/general/data';
+import { ListPagination } from '@/services/general/data';
 import styles from '@/style/custom.less';
 import { CloseOutlined, DatabaseOutlined } from '@ant-design/icons';
 import { ActionType, ProColumns, ProTable } from '@ant-design/pro-components';
 import { Button, Card, Drawer, Input, Space, Tooltip } from 'antd';
 import { SearchProps } from 'antd/es/input/Search';
-import type { FC, Key, ReactNode } from 'react';
+import type { FC, Key } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { FormattedMessage, useIntl } from 'umi';
 import ContactCreate from '../create';
@@ -14,22 +14,22 @@ import ContactView from '../view';
 
 type Props = {
   buttonType: string;
-  buttonText?: ReactNode;
+  buttonText?: any;
   lang: string;
   onData: (rowKey: string, version: string) => void;
-  filterTabs?: DataTabKey[];
+  filterTabs?: ('tg' | 'co' | 'my' | 'te')[];
 };
 
 const { Search } = Input;
 
 const ContactSelectDrawer: FC<Props> = ({ buttonType, buttonText, lang, onData, filterTabs }) => {
-  const [tgKeyWord, setTgKeyWord] = useState<string>('');
-  const [coKeyWord, setCoKeyWord] = useState<string>('');
-  const [myKeyWord, setMyKeyWord] = useState<string>('');
-  const [teamKeyWord, setTeamKeyWord] = useState<string>('');
+  const [tgKeyWord, setTgKeyWord] = useState<any>('');
+  const [coKeyWord, setCoKeyWord] = useState<any>('');
+  const [myKeyWord, setMyKeyWord] = useState<any>('');
+  const [teamKeyWord, setTeamKeyWord] = useState<any>('');
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [selectedRowKeys, setSelectedRowKeys] = useState<Key[]>([]);
-  const [activeTabKey, setActiveTabKey] = useState<DataTabKey>(() => {
+  const [activeTabKey, setActiveTabKey] = useState<string>(() => {
     if (filterTabs && filterTabs.length > 0) {
       return filterTabs[0];
     }
@@ -46,26 +46,25 @@ const ContactSelectDrawer: FC<Props> = ({ buttonType, buttonText, lang, onData, 
     setDrawerVisible(true);
   };
 
-  const onSelectChange = (newSelectedRowKeys: Key[]) => {
+  const onSelectChange = (newSelectedRowKeys: React.Key[]) => {
     setSelectedRowKeys(newSelectedRowKeys);
   };
 
   const onTabChange = async (key: string) => {
-    const tabKey = key as DataTabKey;
-    await setActiveTabKey(tabKey);
-    if (tabKey === 'tg') {
+    await setActiveTabKey(key);
+    if (key === 'tg') {
       await tgActionRefSelect.current?.setPageInfo?.({ current: 1 });
       tgActionRefSelect.current?.reload();
     }
-    if (tabKey === 'co') {
+    if (key === 'co') {
       coActionRefSelect.current?.setPageInfo?.({ current: 1 });
       coActionRefSelect.current?.reload();
     }
-    if (tabKey === 'my') {
+    if (key === 'my') {
       myActionRefSelect.current?.setPageInfo?.({ current: 1 });
       myActionRefSelect.current?.reload();
     }
-    if (tabKey === 'te') {
+    if (key === 'te') {
       teamActionRefSelect.current?.setPageInfo?.({ current: 1 });
       teamActionRefSelect.current?.reload();
     }
@@ -125,7 +124,7 @@ const ContactSelectDrawer: FC<Props> = ({ buttonType, buttonText, lang, onData, 
   ];
 
   const tabList = filterTabs
-    ? allTabList.filter((tab) => filterTabs.includes(tab.key as DataTabKey))
+    ? allTabList.filter((tab) => filterTabs.includes(tab.key as 'tg' | 'co' | 'my' | 'te'))
     : allTabList;
 
   const contactColumns: ProColumns<ContactTable>[] = [
@@ -224,7 +223,7 @@ const ContactSelectDrawer: FC<Props> = ({ buttonType, buttonText, lang, onData, 
     },
   ];
 
-  const databaseList: Record<DataTabKey, React.ReactNode> = {
+  const databaseList: Record<string, React.ReactNode> = {
     tg: (
       <>
         <Card>

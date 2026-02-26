@@ -1,15 +1,9 @@
 import ToolBarButton from '@/components/ToolBarButton';
 import { createContact, getContactDetail } from '@/services/contacts/api';
-import {
-  ContactDataSetObjectKeys,
-  ContactDetailResponse,
-  ContactImportData,
-  FormContact,
-} from '@/services/contacts/data';
+import { ContactDataSetObjectKeys, FormContact } from '@/services/contacts/data';
 import { genContactFromData } from '@/services/contacts/util';
 import { initVersion } from '@/services/general/data';
 import { formatDateTime } from '@/services/general/util';
-import type { SupabaseMutationResult } from '@/services/supabase/data';
 import styles from '@/style/custom.less';
 import { CloseOutlined, CopyOutlined, PlusOutlined } from '@ant-design/icons';
 import { ActionType, ProForm, ProFormInstance } from '@ant-design/pro-components';
@@ -26,7 +20,7 @@ type Props = {
   actionType?: 'create' | 'copy' | 'createVersion';
   id?: string;
   version?: string;
-  importData?: ContactImportData | null;
+  importData?: any;
   onClose?: () => void;
   newVersion?: string;
 };
@@ -82,7 +76,7 @@ const ContactCreate: FC<CreateProps> = ({
   const getFormDetail = () => {
     if (!id || !version) return;
     setSpinning(true);
-    getContactDetail(id, version).then(async (result: ContactDetailResponse) => {
+    getContactDetail(id, version).then(async (result) => {
       const contactFromData = genContactFromData(result.data?.json?.contactDataSet ?? {});
       if (actionType === 'createVersion' && newVersion && contactFromData) {
         contactFromData.administrativeInformation.publicationAndOwnership['common:dataSetVersion'] =
@@ -249,10 +243,7 @@ const ContactCreate: FC<CreateProps> = ({
             onFinish={async () => {
               const paramsId = (actionType === 'createVersion' ? id : v4()) ?? '';
               const formFieldsValue = formRefCreate.current?.getFieldsValue();
-              const result: SupabaseMutationResult<unknown> = await createContact(
-                paramsId,
-                formFieldsValue,
-              );
+              const result = await createContact(paramsId, formFieldsValue);
               if (result.data) {
                 message.success(
                   intl.formatMessage({
@@ -264,7 +255,7 @@ const ContactCreate: FC<CreateProps> = ({
                 setDrawerVisible(false);
                 reload();
               } else {
-                message.error(result.error?.message ?? 'Error');
+                message.error(result.error.message);
               }
               return true;
             }}

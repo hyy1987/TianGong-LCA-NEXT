@@ -97,8 +97,6 @@ type ReffPathNode = {
   nonExistent: boolean;
 };
 
-export type ProblemNode = ReffPathNode;
-
 const tableDict = {
   'contact data set': 'contacts',
   'source data set': 'sources',

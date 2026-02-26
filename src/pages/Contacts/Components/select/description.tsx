@@ -1,5 +1,4 @@
 import LangTextItemDescription from '@/components/LangTextItem/description';
-import { ContactReference } from '@/services/contacts/data';
 import { Card, Descriptions, Divider, Space } from 'antd';
 import { FC, ReactNode } from 'react';
 import { FormattedMessage, getLocale } from 'umi';
@@ -7,15 +6,12 @@ import ContactView from '../view';
 
 type Props = {
   title: ReactNode | string;
-  data?: ContactReference;
+  data: any;
   lang: string;
 };
 
 const ContactSelectDescription: FC<Props> = ({ title, data, lang }) => {
   const locale = getLocale();
-  const refItem = Array.isArray(data) ? data[0] : data;
-  const refId = refItem?.['@refObjectId'];
-  const refVersion = refItem?.['@version'];
   // const actionRef = React.useRef<ActionType | undefined>(undefined);
 
   return (
@@ -32,11 +28,16 @@ const ContactSelectDescription: FC<Props> = ({ title, data, lang }) => {
             }
             labelStyle={{ width: locale === 'zh-CN' ? '190px' : '260px' }}
           >
-            {refItem?.['@refObjectId'] ?? '-'}
+            {data?.['@refObjectId'] ?? '-'}
           </Descriptions.Item>
         </Descriptions>
-        {refId && (
-          <ContactView id={refId} version={refVersion ?? ''} lang={lang} buttonType='text' />
+        {data?.['@refObjectId'] && (
+          <ContactView
+            id={data?.['@refObjectId']}
+            version={data?.['@version']}
+            lang={lang}
+            buttonType='text'
+          />
         )}
       </Space>
       <br />
@@ -67,13 +68,13 @@ const ContactSelectDescription: FC<Props> = ({ title, data, lang }) => {
           label={<FormattedMessage id='pages.contact.version' defaultMessage='Version' />}
           labelStyle={{ width: '140px' }}
         >
-          {refItem?.['@version'] ?? '-'}
+          {data?.['@version'] ?? '-'}
         </Descriptions.Item>
       </Descriptions>
       <Divider orientationMargin='0' orientation='left' plain>
         <FormattedMessage id='pages.contact.shortDescription' defaultMessage='Short description' />
       </Divider>
-      <LangTextItemDescription data={refItem?.['common:shortDescription']} />
+      <LangTextItemDescription data={data?.['common:shortDescription']} />
     </Card>
   );
 };
