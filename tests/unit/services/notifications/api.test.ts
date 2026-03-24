@@ -288,6 +288,15 @@ describe('Notifications API service (src/services/notifications/api.ts)', () => 
       expect(result).toEqual({ data: [], success: true, total: 0 });
     });
 
+    it('preserves the total count when the requested page is empty', async () => {
+      const builder = createQueryBuilder({ data: [], count: 23 });
+      mockFrom.mockReturnValueOnce(builder);
+
+      const result = await notificationsApi.getNotifications({ pageSize: 10, current: 4 }, 0);
+
+      expect(result).toEqual({ data: [], success: true, total: 23 });
+    });
+
     it('returns failure response when query payload is malformed', async () => {
       const builder = createQueryBuilder({ data: undefined, count: 0 });
       mockFrom.mockReturnValueOnce(builder);

@@ -153,7 +153,7 @@ export async function getNotifications(
       return Promise.resolve({
         data: [],
         success: true,
-        total: 0,
+        total: result?.count ?? 0,
       });
     }
 
