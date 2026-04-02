@@ -76,3 +76,24 @@ REMOTE_DB_URL='postgresql://postgres:***@db.xxx.supabase.co:5432/postgres?sslmod
 兼容入口（已废弃）：
 
 - `docker/scripts/sync-lca-migrations-to-data-sql.sh` 会转发到新脚本
+
+## TianGong Storage 初始化
+
+首次初始化数据库时，随仓库提供的 Postgres 容器还会自动创建 TianGong 当前应用依赖的
+storage bucket：
+
+- `external_docs`
+- `sys-files`
+- `lca_results`
+
+同时会补齐当前应用使用到的基础 `storage.objects` 策略：
+
+- `external_docs`：允许已登录用户读写和删除来源附件。
+- `sys-files`：允许匿名用户读取对外展示的系统资源（如团队 logo），允许已登录用户管理上传内容。
+- `lca_results`：为后端服务写入 LCA 结果制品预创建 bucket。
+
+注意：
+
+- 这些 SQL 初始化脚本只会在 `./volumes/db/data` 为空时执行。
+- 如果你挂载的是已经初始化过的数据卷，需要手动补建 bucket，或在首次启动前重置数据库数据卷。
+- 如果你使用的是外部 Postgres，而不是 compose 内置的 `db` 服务，也需要手动执行同样的 SQL。

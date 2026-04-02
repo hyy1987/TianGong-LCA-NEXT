@@ -506,6 +506,7 @@ services:
       - ./volumes/db/init-scripts/replace_env_vars.sh:/docker-entrypoint-initdb.d/00-replace_env_vars.sh:Z
       - ./volumes/db/init/data.sql:/docker-entrypoint-initdb.d/migrations/data.sql:Z
       - ./volumes/db/init/init_user.sql:/docker-entrypoint-initdb.d/migrations/100-init_user.sql:Z
+      - ./volumes/db/init/storage_buckets.sql:/docker-entrypoint-initdb.d/migrations/101-storage_buckets.sql:Z
       # PGDATA directory is persisted between restarts
       - ./volumes/db/data:/var/lib/postgresql/data:Z
       # Changes required for internal supabase data such as _analytics

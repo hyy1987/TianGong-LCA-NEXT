@@ -95,6 +95,27 @@ This Docker Compose configuration includes the following services:
 - **[Vector](https://github.com/vectordotdev/vector)** - High-performance observability data pipeline for logs
 - **[Supavisor](https://github.com/supabase/supavisor)** - Supabase's Postgres connection pooler
 
+## TianGong Storage Bootstrap
+
+On the first database initialization, the bundled Postgres container also bootstraps the
+TianGong storage buckets required by the app:
+
+- `external_docs`
+- `sys-files`
+- `lca_results`
+
+The bootstrap also creates the baseline `storage.objects` policies used by the current app:
+
+- `external_docs`: authenticated users can read/write/delete source attachments.
+- `sys-files`: anonymous users can read public system assets such as team logos; authenticated users can manage uploads.
+- `lca_results`: bucket is created for LCA result artifacts written by backend services.
+
+Important:
+
+- These SQL init scripts run only when `./volumes/db/data` is empty.
+- If you are attaching an already initialized database volume, create the buckets manually or reset the database volume before the first boot.
+- If you are using an external Postgres instance instead of the bundled `db` service, apply the same SQL manually.
+
 ## Documentation
 
 - **[Documentation](https://supabase.com/docs/guides/self-hosting/docker)** - Setup and configuration guides
