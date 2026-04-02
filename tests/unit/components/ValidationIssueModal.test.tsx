@@ -770,7 +770,8 @@ describe('ValidationIssueModal', () => {
     expect(html).toContain('>联系人拥有者<');
     expect(html).toContain('>过程拥有者<');
     expect(html).toContain('>修复问题<');
-    expect(html).toContain('>通知数据拥有者<');
+    expect(html).not.toContain('>通知数据拥有者<');
+    expect(html).toContain('<td>-</td>');
     expect(html).toContain('class="action-link"');
     expect(html).toContain('class="action-link-disabled"');
     expect(html.indexOf('contact-1')).toBeLessThan(html.indexOf('process-1'));
@@ -779,6 +780,61 @@ describe('ValidationIssueModal', () => {
     await act(async () => {
       modalHandle?.destroy();
     });
+    createObjectURLSpy.mockRestore();
+    revokeObjectURLSpy.mockRestore();
+  });
+
+  it('clicks the generated download link outside jsdom environments', async () => {
+    const createObjectURLSpy = jest
+      .spyOn(URL, 'createObjectURL')
+      .mockImplementation(() => 'blob:validation-issues-browser');
+    const revokeObjectURLSpy = jest.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
+    const anchorClickSpy = jest
+      .spyOn(HTMLAnchorElement.prototype, 'click')
+      .mockImplementation(() => {});
+    const originalUserAgent = window.navigator.userAgent;
+    let modalHandle: { destroy: () => void } | null = null;
+
+    Object.defineProperty(window.navigator, 'userAgent', {
+      configurable: true,
+      value: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/123.0 Safari/537.36',
+    });
+
+    await act(async () => {
+      modalHandle = showValidationIssueModal({
+        intl,
+        issues: [
+          {
+            code: 'ruleVerificationFailed',
+            isOwnedByCurrentUser: true,
+            link: 'http://localhost:8000/mydata/processes?id=process-browser&version=01.00.000',
+            ownerName: '浏览器下载分支',
+            ref: {
+              '@refObjectId': 'process-browser',
+              '@type': 'process data set',
+              '@version': '01.00.000',
+            },
+          },
+        ],
+        title: '浏览器下载分支',
+      }) as { destroy: () => void };
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: '下载 HTML' }));
+    });
+
+    expect(anchorClickSpy).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      modalHandle?.destroy();
+    });
+
+    Object.defineProperty(window.navigator, 'userAgent', {
+      configurable: true,
+      value: originalUserAgent,
+    });
+    anchorClickSpy.mockRestore();
     createObjectURLSpy.mockRestore();
     revokeObjectURLSpy.mockRestore();
   });
@@ -808,7 +864,7 @@ describe('ValidationIssueModal', () => {
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: '知道了' }));
     });
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
 
     await act(async () => {
       modalHandle?.destroy();
@@ -833,7 +889,7 @@ describe('ValidationIssueModal', () => {
       });
     });
     fireEvent.click(screen.getByRole('button', { name: 'close' }));
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
   });
 
   it('covers all issue codes, type fallbacks, duplicate filtering and html escaping', async () => {
